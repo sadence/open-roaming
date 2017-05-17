@@ -1,0 +1,91 @@
+---
+- hosts: test
+
+
+  vars:
+    caint_key: "{{dir}}/private/intermediate.{{realm}}.key.pem"
+    csr: "@{{dir}}/csr/intermediate.{{realm}}.csr.pem"
+    sign_server: https://ca.openroaming.org
+
+  tasks:
+   - name: Loading variables
+     include_vars:
+      file: parameters.yml
+
+### Configuring intermediate CA
+
+   - name: Create target directory for ssl
+     file:
+       path: /etc/ssl/private
+       state: directory
+       mode: 0755
+
+   - name: Create target directory for intermediate CA
+     file:
+       path: "{{ dir }}"
+       state: directory
+       mode: 0755
+
+   - name: Create target sub-directories for intermediate CA
+     file:
+       path: "{{ dir }}/{{ item }}"
+       state: directory
+       mode: 0755
+     with_items:
+        - private
+        - csr
+        - crl
+        - newcerts
+        - certs
+
+   - name: Creating private key intermediate CA.
+     openssl_privatekey:
+       path: "{{caint_key}}"
+       state: present
+       force: false
+
+   - name: Upload SSL configuration for intermediate.
+     template:
+       src: mytemplates/openssl.cnf.j2
+       dest: "{{dir}}/openssl.cnf"
+       owner: root
+       group: root
+       mode: 064
+       force: yes
+
+   - name: Touch index file.
+     file: path={{dir}}/index.txt state=file owner=root mode=444
+
+   - name: Create serial for certificates
+     template:
+       src: mytemplates/serial.j2
+       dest: "{{dir}}/serial"
+       force: no
+
+   - name: Generate CSR
+     command: openssl req -config {{dir}}/openssl.cnf -new -sha256 \
+      -key "{{caint_key}}" \
+      -out {{dir}}/csr/intermediate.{{realm}}.csr \
+      -subj "/C={{country_code}}/ST={{region}}/L={{locality}}/O={{organization}}/OU={{org_unit}}/CN={{common_name}}"
+     args:
+       creates: "{{dir}}/csr/intermediate.{{realm}}.csr"
+
+   - name: Sign CSR via distant server
+     shell: curl -F csr={{ '@' }}{{dir}}/csr/intermediate.{{realm}}.csr \
+      {{sign_server}}/signCertificat -o {{dir}}/certs/intermediate.{{realm}}.cert.pem
+     args:
+       creates: "{{dir}}/certs/intermediate.{{realm}}.cert.pem"
+
+   - name: Get root certificate
+     shell: curl {{sign_server}}/rootCA > {{root_ca}}
+
+   - name: Create certificate ca-chain
+     shell: cat {{dir}}/certs/intermediate.{{realm}}.cert.pem {{root_ca}} > \
+      {{dir}}/certs/ca-chain.cert.pem
+
+   - name: Create script to add users
+     template:
+       src: mytemplates/client-cert.sh.j2
+       dest: "/etc/ssl/private/client-cert.sh"
+       force: yes
+       mode: 0755

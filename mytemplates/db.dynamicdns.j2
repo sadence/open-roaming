@@ -1,0 +1,18 @@
+;
+; BIND data file for local loopback interface
+;
+$TTL 14400
+@       IN      SOA     ns0.{{domain_name}}. admin.{{domain_name}}. (
+                             10         ; Serial
+                           7200         ; Refresh
+                           3600         ; Retry
+                        2419200         ; Expire
+                          14400 )       ; Negative Cache TTL
+;
+@       IN      NS      ns0.{{domain_name}}.
+@       IN      NS      ns1.{{domain_name}}.
+ns0	    IN    	A	      {{dns_ip_address}}
+ns1     IN      A       {{dns_ip_address}}
+@	      IN      NAPTR   50 50 "s" "aaa+auth:radius.tls.tcp" ""  _radiustls._tcp.{{domain_name}}.
+_radiustls._tcp.{{domain_name}}.  IN SRV 0 10 2083 radius.{{domain_name}}.
+radius	IN    	A       {{radius_ip_address}}

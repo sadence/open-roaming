@@ -1,0 +1,119 @@
+# Master config file for radsecproxy
+
+# First you may define any global options, these are:
+#
+# You can optionally specify addresses and ports to listen on
+# Multiple statements can be used for multiple ports/addresses
+ListenUDP		*:1812
+#ListenUDP		localhost
+#ListenTCP		[2001:700:1:7:215:f2ff:fe35:307d]:1812
+#ListenTLS		10.10.10.10:2084
+#ListenTLS		[2001:700:1:7:215:f2ff:fe35:307d]:2084
+#ListenDTLS		*:2083
+
+# To specify a certain address/port for UDP/TLS requests you can use e.g.
+#SourceUDP		127.0.0.1:33000
+#SourceTCP		*:33000
+#SourceTLS		*:33001
+#SourceDTLS		*:33001
+
+# Optional log level. 3 is default, 1 is less, 5 is more
+LogLevel		5
+# Optional LogDestination, else stderr used for logging
+# Logging to file
+#LogDestination		file:///tmp/rp.log
+# Or logging with Syslog. LOG_DAEMON used if facility not specified
+# The supported facilities are LOG_DAEMON, LOG_MAIL, LOG_USER and
+# LOG_LOCAL0, ..., LOG_LOCAL7
+#LogDestination         x-syslog:///
+#LogDestination         x-syslog:///log_local2
+
+# For generating log entries conforming to the F-Ticks system, specify
+# FTicksReporting with one of the following values.
+#   None  -- Do not log in F-Ticks format.  This is the default.
+#   Basic -- Do log in F-Ticks format but do not log VISINST.
+#   Full  -- Do log in F-Ticks format and do log VISINST.
+# Please note that in order to get F-Ticks logging for a given client,
+# its matching client configuration block has to contain the
+# fticksVISCOUNTRY option.
+
+# In order to use FTicksMAC with one of VendorKeyHashed or
+# FullyKeyHashed, specify a key with FTicksKey.
+# FTicksKey <key>
+
+# Default F-Ticks configuration:
+#FTicksReporting None
+#FTicksMAC Static
+
+# You can optionally specify FTicksSyslogFacility to use a dedicated
+# syslog facility for F-Ticks messages. This allows for easier filtering
+# of F-Ticks messages.
+# F-Ticks messages are always logged using the log level LOG_DEBUG.
+# Note that specifying a file (using the file:/// prefix) is not supported.
+#FTicksSyslogFacility	log_local1
+#FTicksSyslogFacility	x-syslog:///log_local1
+
+# There is an option for doing some simple loop prevention.  Note that
+# the LoopPrevention directive can be used in server blocks too,
+# overriding what's set here in the basic settings.
+#LoopPrevention		on
+# Add TTL attribute with value 20 if not present (prevents endless loops)
+#AddTTL 20
+
+
+tls client {
+     CACertificateFile {{cafile}}
+     CACertificatePath	{{capath}}
+
+     CertificateFile {{radsec_certclient_chained}}
+     CertificateKeyFile {{radsec_clientkey}}
+#     CertificateKeyPassword ""
+}
+
+tls server {
+     CACertificateFile {{cafile}}
+     CACertificatePath  {{capath}}
+
+     CertificateFile      {{radsec_certserver_chained}}
+     CertificateKeyFile {{radsec_serverkey}}
+#     CertificateKeyPassword  ""
+
+}
+
+# add wifi hotspot here :
+client {{radsec_apip}} {
+	type	udp
+	secret	{{radsec_apsecret}}
+}
+
+
+# Allow all visitors to connect to the radsecproxy
+client visitor {
+	host 0.0.0.0/0
+	type tls
+	tls server
+}
+
+# dds server
+server trial {
+	dynamicLookupCommand /etc/dds.sh
+	type tls
+	tls client
+}
+
+# home radius
+server localhost {
+	host 127.0.0.1:1814
+	type udp
+	secret {{radsec_secret}}
+}
+
+# attached realm
+realm {{radsec_localrealm}} {
+    server localhost
+}
+
+# dns discovery
+realm * {
+        server trial
+}

@@ -1,0 +1,8 @@
+{
+    "CACert": "/Users/Foo/Bar/root/certs/ca.cert.pem",
+    "CAKey": "/Users/Foo/Bar/root/private/ca.key.pem",
+    "KeyPassword": "secret",
+    "BeginningSerial": "01",
+    "ServerCert": "/foo/bar",
+    "ServerKey": "/foo/bar"
+}

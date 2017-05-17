@@ -1,0 +1,104 @@
+---
+- hosts: test
+  vars:
+    radsec_certclient: "/{{dir}}/certs/client.radsec.{{realm}}.cert.pem"
+    radsec_certclient_chained: "{{dir}}/certs/client.radsec.{{realm}}-chain.cert.pem"
+    radsec_certserver: "{{dir}}/certs/server.radsec.{{realm}}.cert.pem"
+    radsec_clientkey: "{{dir}}/private/client.radsec.{{realm}}.key.pem"
+    radsec_serverkey: "{{dir}}/private/server.radsec.{{realm}}.key.pem"
+    radsec_certserver_chained: "{{dir}}/certs/server.radsec.{{realm}}-chain.cert.pem"
+    radsec_localrealm: "{{realm}}"
+    radsec_dns: radius.{{realm}}
+    adminEmail: admin@{{realm}}
+    intermediate_ca: "{{dir}}/certs/intermediate.{{realm}}.cert.pem"
+
+  tasks:
+   - name: Loading variables
+     include_vars:
+       file: parameters.yml
+
+### Creating keys for certificates
+
+   - name: Creating client private key for radsec.
+     openssl_privatekey:
+       path: "{{radsec_clientkey}}"
+       state: present
+       size: 2048
+       force: false
+
+   - name: Creating server private key for radsec.
+     openssl_privatekey:
+       path: "{{radsec_serverkey}}"
+       state: present
+       size: 2048
+       force: false
+
+### creating and signing certificates :
+
+   - name: Create CSR for radsec client.
+     command: openssl req -config {{dir}}/openssl.cnf -new -sha256 \
+      -key "{{radsec_clientkey}}" \
+      -out "{{dir}}/csr/client.radsec.{{realm}}.csr" \
+      -subj "/C={{country_code}}/ST={{region}}/L={{locality}}/O={{organization}}/OU={{org_unit}}/CN=client.radsec.{{common_name}}"
+     args:
+       creates: "{{dir}}/csr/client.radsec.{{realm}}.csr"
+
+   - name: Sign certificate for radsec client.
+     command: openssl ca -batch -config {{dir}}/openssl.cnf \
+      -extensions usr_cert -days 375 -notext -md sha256 \
+      -in "{{dir}}/csr/client.radsec.{{realm}}.csr" \
+      -out "{{dir}}/certs/client.radsec.{{realm}}.cert.pem"
+     args:
+       creates: "{{dir}}/certs/client.radsec.{{realm}}.cert.pem"
+
+   - name: Create CSR for radsec server.
+     command: openssl req -config {{dir}}/openssl.cnf -new -sha256 \
+      -key "{{radsec_serverkey}}" \
+      -out "{{dir}}/csr/server.radsec.{{realm}}.csr" \
+      -subj "/C={{country_code}}/ST={{region}}/L={{locality}}/O={{organization}}/OU={{org_unit}}/CN={{radsec_dns}}"
+     args:
+       creates: "{{dir}}/csr/server.radsec.{{realm}}.csr"
+
+
+   - name: Sign certificate for radsec server.
+     command: openssl ca -batch -config {{dir}}/openssl.cnf \
+      -extensions server_cert -days 375 -notext -md sha256 \
+      -in "{{dir}}/csr/server.radsec.{{realm}}.csr" \
+      -out "{{dir}}/certs/server.radsec.{{realm}}.cert.pem"
+     args:
+        creates: "{{dir}}/certs/server.radsec.{{realm}}.cert.pem"
+
+   - name: Chain certificates for radsec server.
+     shell: cat {{ radsec_certserver }} {{ intermediate_ca }}  > \
+      {{ radsec_certserver_chained }}
+     args:
+        creates: "{{ radsec_certserver_chained }}"
+
+   - name: Chain certificates for radsec client.
+     shell: cat {{ radsec_certclient }} {{ intermediate_ca }}  > \
+      {{ radsec_certclient_chained }}
+     args:
+        creates: "{{ radsec_certclient_chained }}"
+
+
+### Upping the config file
+
+   - name: Adding radsecproxy.conf config file
+     template:
+       src: mytemplates/radsecproxy.conf.j2
+       dest: /etc/radsecproxy.conf
+       owner: root
+       group: root
+       mode: 064
+
+   - name: Launch / restart radsecproxy
+     service:
+       name: radsecproxy
+       state: restarted
+
+   - copy:
+      src: mytemplates/dds.sh
+      dest: /etc
+      owner: root
+      group: root
+      mode: 511

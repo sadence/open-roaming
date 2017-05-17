@@ -1,0 +1,49 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: ${0} <username>"
+    echo "\nGenerate a client certificate."
+    exit 1
+}
+
+alertOpenSSL() {
+    echo "OpenSSL must be installed !!"
+    exit 1
+}
+
+test -n "${1}" || usage
+
+REALM={{realm}}
+USERNAME="${1}"
+
+OPENSSLCMD=$(command -v openssl)
+
+test -n "${OPENSSLCMD}" || alertOpenSSL
+
+echo "Create private key ..."
+${OPENSSLCMD} genrsa -out intermediate/private/${USERNAME}@${REALM}.key.pem 2048
+
+echo "Create the certificate ..."
+${OPENSSLCMD} req -config intermediate/openssl.cnf \
+      -key intermediate/private/${USERNAME}@${REALM}.key.pem \
+      -new -sha256 -out intermediate/csr/${USERNAME}@${REALM}.csr.pem \
+      -subj "/C={{country_code}}/ST={{region}}/L={{locality}}/O={{organization}}/OU={{org_unit}}/CN=${USERNAME}@${REALM}"
+
+${OPENSSLCMD} ca -batch -config intermediate/openssl.cnf \
+      -extensions usr_cert -days 375 -notext -md sha256 \
+      -in intermediate/csr/${USERNAME}@${REALM}.csr.pem \
+      -out intermediate/certs/${USERNAME}@${REALM}.cert.pem
+
+echo "Export certificate ..."
+${OPENSSLCMD} pkcs12 -export -out intermediate/certs/${USERNAME}@${REALM}.pfx \
+  -inkey intermediate/private/${USERNAME}@${REALM}.key.pem \
+  -in  intermediate/certs/${USERNAME}@${REALM}.cert.pem \
+  -certfile intermediate/certs/ca-chain.cert.pem
+
+rm -rf intermediate/private/${USERNAME}@${REALM}.key.pem
+rm -rf intermediate/certs/${USERNAME}@${REALM}.cert.pem
+rm -rf intermediate/csr/${USERNAME}@${REALM}.csr.pem
+
+echo "Your client certificate successfully created !"
+echo "You can find it in ./intermediate/certs/${USERNAME}@${REALM}.pfx"
+exit 0

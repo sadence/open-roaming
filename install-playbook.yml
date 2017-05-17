@@ -1,0 +1,44 @@
+---
+- hosts: test
+  tasks:
+   - name: Add freeradius 3 to rep
+     apt_repository:
+       repo: deb http://ppa.launchpad.net/freeradius/stable-3.0/ubuntu xenial main
+       state: present
+   - name: Install freeradius
+     apt:
+       name: freeradius
+       update_cache: yes
+       allow_unauthenticated: yes
+   - name: Install bind9
+     apt:
+       name: bind9
+       state: present
+   - name: Install dnsutils
+     apt:
+       name: dnsutils
+       state: present
+   - name: Install radsecproxy
+     apt:
+       name: radsecproxy
+       state: present
+
+   - name: Instaling pip
+     apt:
+      name: python-pip
+      state: latest
+
+   - name: Instaling libssl-dev
+     apt:
+      name: libssl-dev
+      state: latest
+
+   - name: Installing  pyOpenSSL python module
+     pip:
+       name: pyOpenSSL
+
+   - name: Installing  curl
+     apt:
+       name: curl
+
+       

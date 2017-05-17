@@ -1,0 +1,73 @@
+---
+- hosts: test
+  vars:
+    freeradius_servercert: "{{dir}}/certs/server.radius.{{realm}}.cert.pem"
+    freeradius_serverkey: "{{dir}}/private/server.radius.{{realm}}.key.pem"
+  tasks:
+### Generating radius keys :
+
+   - name: Loading variables
+     include_vars:
+       file: parameters.yml
+
+   - name: Create server private key for freeradius
+     shell: openssl genrsa -out {{ freeradius_serverkey }} 2048
+     args:
+       creates: "{{ freeradius_serverkey }}"
+
+   - name: Fixing key permissions
+     file:
+       path: "{{ freeradius_serverkey }}"
+       mode: 0755
+
+   - name: Create CSR for freeradius server.
+     command: openssl req -config {{dir}}/openssl.cnf -new -sha256 \
+      -key "{{freeradius_serverkey}}" \
+      -out "{{dir}}/csr/server.radius.{{realm}}.csr" \
+      -subj "/C={{country_code}}/ST={{region}}/L={{locality}}/O={{organization}}/OU={{org_unit}}/CN=server.radius.{{common_name}}"
+     args:
+       creates: "{{dir}}/csr/server.radius.{{realm}}.csr"
+
+   - name: Sign certificate for freeradius server.
+     command: openssl ca -batch -config {{dir}}/openssl.cnf \
+      -extensions server_cert -days 375 -notext -md sha256 \
+      -in "{{dir}}/csr/server.radius.{{realm}}.csr" \
+      -out "{{dir}}/certs/server.radius.{{realm}}.cert.pem"
+     args:
+        creates: "{{dir}}/certs/server.radius.{{realm}}.cert.pem"
+
+   - name: Up configuration for freeradius - clients.conf
+     template:
+       src: mytemplates/freeradius/clients.conf.j2
+       dest: /etc/freeradius/clients.conf
+
+   - name: Up configuration for freeradius - files/authorize
+     template:
+       src: mytemplates/freeradius/mods-config/files/authorize.j2
+       dest: /etc/freeradius/mods-config/files/authorize
+
+   - name: Up configuration for freeradius - proxy.conf
+     template:
+       src: mytemplates/freeradius/proxy.conf.j2
+       dest: /etc/freeradius/proxy.conf
+
+   - name: Up configuration for freeradius - mods-available/eap
+     template:
+       src: mytemplates/freeradius/mods-available/eap.j2
+       dest: /etc/freeradius/mods-available/eap
+
+
+   - name: Up configuration for freeradius - sites-available/check-eap-tls.j2
+     template:
+       src: mytemplates/freeradius/sites-available/check-eap-tls.j2
+       dest: /etc/freeradius/sites-available/check-eap-tls
+
+   - name: Up configuration for freeradius - sites-available/default.j2
+     template:
+       src: mytemplates/freeradius/sites-available/default.j2
+       dest: /etc/freeradius/sites-available/default
+
+   - name: Launch / restart freeradius
+     service:
+       name: freeradius
+       state: restarted

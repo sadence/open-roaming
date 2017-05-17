@@ -1,0 +1,10 @@
+---
+- hosts: test
+
+- include: configure-ssl-playbook.yml
+
+- include: configure-radsec-playbook.yml
+
+- include: configure-freeradius-playbook.yml
+
+- include: configure-dns-playbook.yml

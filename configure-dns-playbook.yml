@@ -1,0 +1,23 @@
+---
+- hosts: test
+  tasks:
+    - name: Loading variables
+      include_vars:
+       file: parameters.yml
+    - name: ensure bind9 is at the latest version
+      apt: name=bind9 state=latest
+    - name: ensure dns-utils is at the latest version
+      apt: name=dnsutils state=latest
+    - name: Up configuration for bind - db.dynamicdns
+      template:
+        src: mytemplates/db.dynamicdns.j2
+        dest: /etc/bind/db.dynamicdns
+    - name: Up configuration for bind - named.conf.local
+      template:
+        src: mytemplates/named.conf.default-zones.j2
+        dest: /etc/bind/named.conf.default-zones
+    - name: ensure bind is running (and enable it at boot)
+      service: name=bind9 state=started enabled=yes
+    - service:
+        name: bind9
+        state: restarted

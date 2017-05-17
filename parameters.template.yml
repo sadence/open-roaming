@@ -1,0 +1,19 @@
+realm: "openroaming.co"
+country_code: "FR"
+region: "Ile-de-France"
+locality: "Paris"
+organization: "Open Dynamic Roaming"
+org_unit: "IT"
+dns_ip_address: 20.20.20.20
+radius_ip_address: 20.20.20.20
+radsec_apip: 10.10.10.10 # The AP used for the test
+radsec_apsecret: secret # The shared secret for the AP
+### System parameters : do not modify unless you know what you are doing
+domain_name: "{{realm}}"
+common_name: "{{realm}}"
+dir: "/etc/ssl/private/intermediate"
+cafile: "/etc/ssl/private/ca-root.cert.pem"
+capath: "/etc/ssl/private"
+ca_chain: "/etc/ssl/private/intermediate/certs/ca-chain.cert.pem"
+root_ca: /etc/ssl/private/ca-root.cert.pem
+radsec_secret: secret # secret between the freeradius and the radsecproxy

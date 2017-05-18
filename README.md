@@ -12,7 +12,7 @@ To do so, it will perform a series of dig requests (NAPTR, then SRV), and then c
 
 ### Installation and configuration
 
-You must begin by cloning the project / copying the files. The following procedure will install a freeradius server, a radsecproxy and a bind server, as well as other tools required. It will then configure them.
+You must begin by cloning the project / copying the files. If you're using a VM snapshot provided by us, it will be in `/opt`. The following procedure will install a freeradius server, a radsecproxy and a bind server, as well as other tools required. It will then configure them.
 
 ##### Ansible Installation
 
@@ -68,7 +68,7 @@ radius_ip_address: 20.20.20.20
 
 `dns_ip_address` corresponds to the  DNS server IP address that will be used. By default, use the machine's which will allow you to use our configuration.
 
-`radius_ip_address` corresponds to the radsecproxy's IP address. You should put the machine's. 
+`radius_ip_address` corresponds to the radsecproxy's IP address. You should put the machine's.
 
 Then, go into the `playbooks` folder and run the first playbook as follows :
 

@@ -164,9 +164,36 @@ A web server is used to sign the intermediate certificate. A post request with c
 
 ##### Installing your own sign server
 
-In order to install your own sign server, you'll need to install Node. The server was tested with Node 7 :
+In order to install your own sign server, you'll need to install Node. The server was tested with Node 7. To install it, run :
 
 ```
 curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
+Once node has been installed, go to the sign-server folder and run `npm install` to install the necessary modules.
+
+Then, if needed, you must create the root key and certificate. to sign intermediate certificates with. From the sign-server folder :
+
+```
+cd root/ca
+mkdir crl newcerts private certs
+chmod 700 private
+
+# create the key :
+openssl genrsa -aes256 -out private/ca.key.pem 4096
+
+# create the root cert :
+openssl req -config openssl.cnf \
+      -key private/ca.key.pem \
+      -new -x509 -days 7300 -sha256 -extensions v3_ca \
+      -out certs/ca.cert.pem
+```
+Then to configure the server you must copy the contents of `cofig.json.template` to `config.json` and indicate the paths to the newly created certificate and key in the `CACert` and `CAKey` fields.
+
+To read more about openssl and setting up certificates, check : https://jamielinux.com/docs/openssl-certificate-authority/.
+
+Last step is to set DNS configuration and to create the necessary certificates for https. We used let's encrypt.
+
+Indicate the path to the necessary keys and certificate, in config.json, in the `ServerCert` and `ServerKey` fields.
+
+By now, it should be good to go. In the sign-server folder, get the server running the command `node app.js`.

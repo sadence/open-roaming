@@ -54,7 +54,7 @@
        force: yes
 
    - name: Touch index file.
-     file: path={{dir}}/index.txt state=file owner=root mode=444
+     file: path={{dir}}/index.txt state=touch owner=root mode=444
 
    - name: Create serial for certificates
      template:

@@ -164,12 +164,13 @@ A web server is used to sign the intermediate certificate. A post request with c
 
 ##### Installing your own sign server
 
-In order to install your own sign server, you'll need to install Node. The server was tested with Node 7. To install it, run :
+In order to install your own sign server, you'll need to install Node. The server was tested with Node 7. To install it run :
 
 ```
 curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
+
 Once node has been installed, go to the sign-server folder and run `npm install` to install the necessary modules.
 
 Then, if needed, you must create the root key and certificate. to sign intermediate certificates with. From the sign-server folder :

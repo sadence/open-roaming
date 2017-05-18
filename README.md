@@ -62,7 +62,13 @@ region: "Ile-de-France"
 locality: "Paris"
 organization: "Open Dynamic Roaming"
 org_unit: "IT"
+dns_ip_address: 20.20.20.20
+radius_ip_address: 20.20.20.20
 ```
+
+`dns_ip_address` corresponds to the  DNS server IP address that will be used. By default, use the machine's which will allow you to use our configuration.
+
+`radius_ip_address` corresponds to the radsecproxy's IP address. You should put the machine's. 
 
 Then, go into the `playbooks` folder and run the first playbook as follows :
 
@@ -110,33 +116,10 @@ In order to test EAP-TLS you need to generate user certificates by signing them 
 
 ```
 cd /etc/ssl/private
-openssl genrsa -aes256 -out intermediate/private/username@realm.key.pem 2048
-openssl req -config intermediate/openssl.cnf \
-      -key intermediate/private/username@realm.key.pem \
-      -new -sha256 -out intermediate/csr/username@realm.csr.pem
-```
-Of course, do remember to change the username and realm.
-
-You will be promted to enter the user information. You can use defaults *except* for the Common Name *which must be unique* and *must be of the form username@realm*. Indeed, the realm will be used to perform a DNS request to discover the user's radius server's IP.
-This will create the Certificate Signing Request. In order to sign it :
-
-```
-openssl ca -config intermediate/openssl.cnf \
-      -extensions usr_cert -days 375 -notext -md sha256 \
-      -in intermediate/csr/username@realm.csr.pem \
-      -out intermediate/certs/username@realm.cert.pem
+./client-cert.sh <username>
 ```
 
-This will create the certificate. However, in order to install it on a phone, you must create a .pfx :
-
-```
-openssl pkcs12 -export -out intermediate/certs/user@realm.pfx \
-  -inkey intermediate/private/user@realm.key.pem \
-  -in  intermediate/certs/user@realm.cert.pem \
-  -certfile intermediate/certs/ca-chain.cert.pem
-```
-
-The generated .pfx (located) in intermediate/certs/user@realm.pfx. You may download it to your phone or computer and install it to test EAP-TLS :
+This will ask you a password and generate .pfx (located) in intermediate/certs/user@realm.pfx. You may download it to your phone or computer and install it, with the password, to test EAP-TLS :
 
 
 ```

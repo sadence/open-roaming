@@ -91,7 +91,7 @@ Then, run :
 
 ##### Testing your deployment
 
-You must then configure your AP. The request are on the port 1812 and the shared secret can be configured in the radsec_apsecret paremeter. 
+You must then configure your AP. The request are on the port 1812 and the shared secret can be configured in the radsec_apsecret paremeter.
 
 In order to test whether the installation was successful, you can use bob, the default user via EAP-TTLS from your phone or computer.
 
@@ -158,4 +158,15 @@ domain : realm
 +----------------------------+  +----------------------+  +----------------------+
 ```
 
-### Scripts overview
+### Server certificate
+
+A web server is used to sign the intermediate certificate. A post request with curl is executed in the configure-ssl-request to post the certificate via https to the sign-server. The sign-server is specified by default in parameters.yml in the `sign_server` parameter but you may change it to specify your own server.
+
+##### Installing your own sign server
+
+In order to install your own sign server, you'll need to install Node. The server was tested with Node 7 :
+
+```
+curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```

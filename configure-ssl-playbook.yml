@@ -5,7 +5,6 @@
   vars:
     caint_key: "{{dir}}/private/intermediate.{{realm}}.key.pem"
     csr: "@{{dir}}/csr/intermediate.{{realm}}.csr.pem"
-    sign_server: https://ca.openroaming.org
 
   tasks:
    - name: Loading variables

@@ -8,6 +8,7 @@ dns_ip_address: 20.20.20.20
 radius_ip_address: 20.20.20.20
 radsec_apip: 10.10.10.10 # The AP used for the test
 radsec_apsecret: secret # The shared secret for the AP
+sign_server: https://ca.openroaming.org
 ### System parameters : do not modify unless you know what you are doing
 domain_name: "{{realm}}"
 common_name: "{{realm}}"

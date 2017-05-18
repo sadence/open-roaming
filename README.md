@@ -91,6 +91,8 @@ Then, run :
 
 ##### Testing your deployment
 
+You must then configure your AP. The request are on the port 1812 and the shared secret can be configured in the radsec_apsecret paremeter. 
+
 In order to test whether the installation was successful, you can use bob, the default user via EAP-TTLS from your phone or computer.
 
 ```

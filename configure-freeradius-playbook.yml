@@ -67,6 +67,10 @@
        src: mytemplates/freeradius/sites-available/default.j2
        dest: /etc/freeradius/sites-available/default
 
+   - name: Add symbolic link for check-eap-tls
+     shell: ln -s /etc/freeradius/sites-available/check-eap-tls \
+      /etc/freeradius/sites-enabled/check-eap-tls
+
    - name: Launch / restart freeradius
      service:
        name: freeradius

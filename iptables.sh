@@ -29,6 +29,9 @@ iptables -A INPUT -p tcp --sport 2083 -j ACCEPT
 iptables -A INPUT -p udp --dport 1812 -j ACCEPT
 iptables -A INPUT -p udp --sport 1812 -j ACCEPT
 
+iptables -A INPUT -p udp --dport 1814 -j ACCEPT
+iptables -A INPUT -p udp --sport 1814 -j ACCEPT
+
 # Accept ping requests
 iptables -A INPUT -p icmp --icmp-type 8 -s 0/0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p icmp --icmp-type 0 -s 0/0 -m state --state ESTABLISHED,RELATED -j ACCEPT

@@ -68,9 +68,23 @@
        dest: /etc/freeradius/sites-available/default
 
    - name: Add symbolic link for check-eap-tls
-     shell: ln -s /etc/freeradius/sites-available/check-eap-tls \
-      /etc/freeradius/sites-enabled/check-eap-tls
+     file:
+       src: /etc/freeradius/sites-available/check-eap-tls
+       dest: /etc/freeradius/sites-enabled/check-eap-tls
+       state: link
 
+   - name: Add symbolic link for check-eap-tls
+     file:
+       src: /etc/freeradius/sites-available/default
+       dest: /etc/freeradius/sites-enabled/default
+       state: link
+
+   - name: Add symbolic link for check-eap-tls
+     file:
+       src: /etc/freeradius/sites-available/inner-tunnel
+       dest: /etc/freeradius/sites-enabled/inner-tunnel
+       state: link
+       
    - name: Launch / restart freeradius
      service:
        name: freeradius

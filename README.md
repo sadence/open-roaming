@@ -114,6 +114,8 @@ Users can be added to the files module by adding lines in a similar fashion, and
 
 ##### Generating user certificates
 
+Warning : Remember to make sure your system clock is on time!
+
 In order to test EAP-TLS you need to generate user certificates by signing them the intermediate certificate associated to your realm. Here's how to do it:
 
 ```
@@ -198,3 +200,17 @@ Last step is to set DNS configuration and to create the necessary certificates f
 Indicate the path to the necessary keys and certificate, in config.json, in the `ServerCert` and `ServerKey` fields.
 
 By now, it should be good to go. In the sign-server folder, get the server running the command `node app.js`.
+
+
+#### Adding new radius clients
+
+You can add new clients by modifying /etc/radsecproxy.conf. Add the following :
+
+```
+client <IP adress> {
+	type	udp
+	secret	<shared secret>
+}
+```
+
+Don't forget to reload : `service freeradius reload`.
